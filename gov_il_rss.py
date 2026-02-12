@@ -8,8 +8,8 @@ SENT_FILE = Path(os.environ.get("SENT_FILE", "sent_guids.txt"))
 TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
 RSS_URLS = os.environ["RSS_URLS"].split()
-MAX_RETRIES = 3
-RETRY_DELAY = 10
+MAX_RETRIES = 5
+RETRY_DELAY = 5
 
 
 def parse_tag(xml, tag):
