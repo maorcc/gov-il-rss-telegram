@@ -24,4 +24,4 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           RSS_URLS: ${{ secrets.RSS_URLS }}
-        run: uv run --with curl_cffi python gov_il_rss.py
+        run: uv run --no-project --with curl_cffi python gov_il_rss.py
