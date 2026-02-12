@@ -29,3 +29,9 @@ export TELEGRAM_CHAT_ID="..."
 export RSS_URLS="https://www.gov.il/he/api/NewsApi/rss/..."
 uv run --no-project --with curl_cffi python gov_il_rss.py
 ```
+
+## Updating FEEDS.md
+
+```bash
+uv run --no-project --with curl_cffi python scan_feeds.py
+```
