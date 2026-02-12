@@ -19,6 +19,9 @@ jobs:
           path: sent_guids.txt
           key: sent-guids
 
+      - name: Debug - identify block cause
+        run: uv run --with curl_cffi python debug_action.py
+
       - name: Check RSS and send new items
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
