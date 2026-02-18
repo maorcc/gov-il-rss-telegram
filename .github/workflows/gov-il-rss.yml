@@ -17,7 +17,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: sent_guids.txt
-          key: sent-guids
+          key: sent-guids-${{ github.run_id }}
+          restore-keys: sent-guids-
 
       - name: Check RSS and send new items
         env:
