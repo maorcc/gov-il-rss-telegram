@@ -2,7 +2,7 @@ name: Gov.il RSS to Telegram
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # Every 6 hours
+    - cron: '0 */2 * * *'  # Every 2 hours
   workflow_dispatch:  # Manual trigger
 
 jobs:
@@ -13,12 +13,16 @@ jobs:
 
       - uses: astral-sh/setup-uv@v4
 
-      - name: Restore sent GUIDs cache
-        uses: actions/cache@v4
+      - name: Restore state cache
+        uses: actions/cache/restore@v4
         with:
-          path: sent_guids.txt
-          key: sent-guids-${{ github.run_id }}
-          restore-keys: sent-guids-
+          path: |
+            sent_guids.txt
+            feed_failures.json
+          key: gov-il-rss-${{ github.run_id }}
+          restore-keys: |
+            gov-il-rss-
+            sent-guids-
 
       - name: Check RSS and send new items
         env:
@@ -26,3 +30,14 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           RSS_URLS: ${{ secrets.RSS_URLS }}
         run: uv run --no-project --with curl_cffi python gov_il_rss.py
+
+      # The bundled cache action skips its post-step save when the job fails,
+      # which would lose state exactly on error runs; save explicitly instead.
+      - name: Save state cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            sent_guids.txt
+            feed_failures.json
+          key: gov-il-rss-${{ github.run_id }}

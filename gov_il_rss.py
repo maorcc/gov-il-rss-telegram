@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import time
@@ -5,11 +6,13 @@ from pathlib import Path
 from curl_cffi import requests
 
 SENT_FILE = Path(os.environ.get("SENT_FILE", "sent_guids.txt"))
+FAILURES_FILE = Path(os.environ.get("FAILURES_FILE", "feed_failures.json"))
 TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
 RSS_URLS = os.environ["RSS_URLS"].split()
-MAX_RETRIES = 8
+MAX_RETRIES = 2
 RETRY_DELAY = 5
+ALERT_THRESHOLD = 12  # consecutive run failures before alerting (~1 day at 2h intervals)
 
 
 def parse_tag(xml, tag):
@@ -41,6 +44,16 @@ def save_sent(guids):
     SENT_FILE.write_text("\n".join(sorted(guids)) + "\n")
 
 
+def load_failures():
+    if FAILURES_FILE.exists():
+        return json.loads(FAILURES_FILE.read_text())
+    return {}
+
+
+def save_failures(failures):
+    FAILURES_FILE.write_text(json.dumps(failures, indent=2))
+
+
 def send_telegram(text):
     r = requests.post(
         f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
@@ -52,6 +65,7 @@ def send_telegram(text):
 
 def main():
     sent_guids = load_sent()
+    failures = {url: count for url, count in load_failures().items() if url in RSS_URLS}
     new_count = 0
     total_items = 0
     errors = []
@@ -60,9 +74,13 @@ def main():
         print(f"Fetching: {url}")
         try:
             xml = fetch_feed(url)
+            failures[url] = 0
         except RuntimeError as e:
-            print(f"  Error: {e}")
-            errors.append(str(e))
+            failures[url] = failures.get(url, 0) + 1
+            count = failures[url]
+            print(f"  Error (consecutive run {count}): {e}")
+            if count % ALERT_THRESHOLD == 0:
+                errors.append(f"{e} (failed {count} consecutive runs)")
             continue
 
         items = xml.split("<item>")[1:]
@@ -86,6 +104,7 @@ def main():
             new_count += 1
 
     save_sent(sent_guids)
+    save_failures(failures)
     print(f"Done. Sent {new_count} new items, {total_items} total across {len(RSS_URLS)} feeds.")
 
     if errors:
