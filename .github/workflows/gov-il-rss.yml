@@ -9,20 +9,18 @@ jobs:
   check-feed:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: astral-sh/setup-uv@v4
+      - uses: astral-sh/setup-uv@v8
 
       - name: Restore state cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             sent_guids.txt
             feed_failures.json
           key: gov-il-rss-${{ github.run_id }}
-          restore-keys: |
-            gov-il-rss-
-            sent-guids-
+          restore-keys: gov-il-rss-
 
       - name: Check RSS and send new items
         env:
@@ -35,7 +33,7 @@ jobs:
       # which would lose state exactly on error runs; save explicitly instead.
       - name: Save state cache
         if: always()
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: |
             sent_guids.txt
