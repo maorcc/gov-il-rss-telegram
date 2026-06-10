@@ -11,7 +11,11 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      # No pyproject/lockfile in this repo, so uv's dependency cache has
+      # nothing to key on and v8's cache-on-by-default just warns every run
       - uses: astral-sh/setup-uv@v8.2.0
+        with:
+          enable-cache: false
 
       - name: Restore state cache
         uses: actions/cache/restore@v5
